@@ -1,0 +1,97 @@
+---
+title: "Raport z działalności parku rozrywki"
+date: "`r Sys.Date()`"
+header-includes:
+   - \usepackage{float}
+lang: pl
+output: 
+  pdf_document:
+    number_sections: true
+    toc: true
+    dev: cairo_pdf
+---
+
+# Wstęp
+
+Celem tego raportu jest przedstawienie wyników analizy działalności parku „AiBtcQuantLandia” od 2022 roku do chwili obecnej. Analiza została przeprowadzona w Pythonie na podstawie danych zawartych w bazie. Ocenie poddano rentowność, popularność wśród gości, bezpieczeństwo, sprzedaż biletów, lojalność klientów oraz demografię i pochodzenie gości.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, echo = FALSE)
+```
+
+
+```{r wczytanie danych}
+library(knitr)
+
+rentownosc <- read.csv("wyniki_analiza/rentownosc.csv")
+bezpieczenstwo <- read.csv("wyniki_analiza/bezpieczenstwo.csv")
+bilety <- read.csv("wyniki_analiza/bilety.csv")
+demografia <- read.csv("wyniki_analiza/demografia.csv")
+lojalnosc <- read.csv("wyniki_analiza/lojalnosc.csv")
+kraje <- read.csv("wyniki_analiza/geograficzne.csv")
+```
+
+# Rentowność atrakcji
+```{r rentownosc}
+knitr::kable(rentownosc, col.names=c("Nazwa atrakcji", "Liczba użyć", "Przychód", "Koszty całkowite", "Dni awarii", "Zysk", "Czy opłacalna"), caption="Rentowność atrakcji")
+```
+Największą popularnością w parku cieszą się atrakcje **`r rentownosc$Nazwa_atrakcji[1]`** oraz **`r rentownosc$Nazwa_atrakcji[2]`**. Większość atrakcji jest rentowna, straty generują **`r rentownosc$Nazwa_atrakcji[which(rentownosc$Zysk < 0)]`** .
+Atrakcja, która była najdłużej nieczynna to **Skok Wiary** - przez 6 dni, co wyraźnie widać w zarobkach - mimo sporej popularności, jej zysk był o wiele niższy niż liderów. Atrakcje, które psuły się rzadko (0-1 dzień), zarobiły dla parku najwięcej.
+
+# Bezpieczeństwo atrakcji
+
+```{r bezpieczenstwo}
+knitr::kable(bezpieczenstwo, col.names=c("Nazwa atrakcji", "Liczba użyć", "Liczba wypadków", "Wskaźnik wypadkowości (%)", "Zalecenia"), caption="Bezpieczeństwo atrakcji")
+```
+Najwięcej wypadków zachodzi na atrakcji **`r bezpieczenstwo$Nazwa_atrakcji[1]`**, której wskaźnik wypadkowości wynosi **`r bezpieczenstwo$Wskaznik_Wypadkowosci[1]`%**. Na terenie całego parku aż około **`r round((mean(bezpieczenstwo$Wskaznik_Wypadkowosci)),2)`%** gości ulega wypadkom, co oznacza, że każda atrakcja wymaga zdecydowanych popraw. 
+
+# Bilety
+
+```{r bilety}
+knitr::kable(bilety, col.names=c("Rodzaj biletu", "Sprzedano", "Suma przychodów"), caption="Dane ze sprzedaży biletów")
+```
+Największy przychód generuje bilet **`r bilety$Rodzaj_biletu[1]`** - 
+`r format(bilety$Suma_Przychod[1], scientific=FALSE)` zł, najmniejszy zaś bilet **`r bilety$Rodzaj_biletu[4]`** - `r format(bilety$Suma_Przychod[4], scientific=FALSE)` zł.
+
+# Popularność atrakcji
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{wyniki_analiza/raport_trend.png}
+\caption{Wykres liczby obsłużonych klientów w czasie}
+\label{fig:popularnosc}
+\end{figure}
+
+Na rysunku \ref{fig:popularnosc} widzimy, że firma jest w fazie **bardzo silnego wzrostu**. Zaczynaliśmy od mniejszej liczby gości, a w ostatnim miesiącu nastąpił potężny skok (wzrost o ponad 1000% względem początku działalności). 
+
+# Demografia
+
+```{r demografia}
+knitr::kable(demografia, col.names=c("Średni wiek gości", "Najmłodszy", "Najstarszy", "Łączna liczba gości"), caption="Demografia gości")
+```
+
+Średni wiek gości wynosi **`r demografia$Sredni_Wiek`**. Rozstrzał wieku jest jednak ogromny. Najmłodsza osoba w parku miała `r demografia$Najmlodszy` lata, a najstarsza `r demografia$Najstarszy`. Łącznie od 2022 roku park odwiedziło `r demografia$Liczba_Gosci` gości.
+
+# Lojalność
+
+```{r lojalnosc}
+
+knitr::kable(lojalnosc, col.names=c("Liczba odwiedzin", "Liczba osób"), caption="Lojalność gości")
+procent <- (sum(lojalnosc$Ile_Osob)/demografia$Liczba_Gosci)*100
+
+```
+
+`r lojalnosc$Ile_Osob[1]` gości odwiedziło park dwa razy, a `r lojalnosc$Ile_Osob[3]` gości więcej niż 3 razy. **`r round(procent,2)`%** gości powróciło chociaż raz do parku.
+
+# Kraje
+
+```{r kraje}
+knitr::kable(kraje, col.names=c("Kraj", "Liczba gości", "Średni wydatek gościa"), caption="Kraje pochodzenia gości")
+```
+
+Najwięcej gości pochodziło z kraju **`r kraje$Kraj[1]`**. Osoby z tego kraju średnio wydają na bilet **`r kraje$Srednia_Cena[1]` zł**.
+
+# Podsumowanie
+
+Park „AiBtcQuantLandia” odnotowuje wyraźny wzrost liczby odwiedzających i jest w znacznej części rentowny. Przyciąga osoby z różnych grup wiekowych, co oznacza, że oferta parku jest atrakcyjna i uniwersalna - każdy znajdzie coś dla siebie. Ponadto część gości powraca do parku wielokrotnie. Wskaźniki wypadkowości jednak wskazują na konieczność poprawy bezpieczeństwa atrakcji. Dalszy rozwój powinien uwzględniać między innymi inwestycje w bezpieczeństwo i utrzymanie najpopularniejszych atrakcji.
