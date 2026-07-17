@@ -30,21 +30,67 @@ bilety <- read.csv("wyniki_analiza/bilety.csv")
 demografia <- read.csv("wyniki_analiza/demografia.csv")
 lojalnosc <- read.csv("wyniki_analiza/lojalnosc.csv")
 kraje <- read.csv("wyniki_analiza/geograficzne.csv")
+finanse <- read.csv("wyniki_analiza/wynik_finansowy.csv")
+trend_finansowy <- read.csv("wyniki_analiza/trend_finansowy.csv")
 ```
 
 # Rentowność atrakcji
 ```{r rentownosc}
-knitr::kable(rentownosc, col.names=c("Nazwa atrakcji", "Liczba użyć", "Przychód", "Koszty całkowite", "Dni awarii", "Zysk", "Czy opłacalna"), caption="Rentowność atrakcji")
+knitr::kable(rentownosc, col.names=c("Nazwa atrakcji", "Liczba użyć", "Przychód", "Koszty całkowite", "Liczba awarii", "Zysk", "Czy opłacalna"), caption="Rentowność atrakcji")
 ```
 Największą popularnością w parku cieszą się atrakcje **`r rentownosc$Nazwa_atrakcji[1]`** oraz **`r rentownosc$Nazwa_atrakcji[2]`**. Większość atrakcji jest rentowna, straty generują **`r rentownosc$Nazwa_atrakcji[which(rentownosc$Zysk < 0)]`** .
-Atrakcja, która była najdłużej nieczynna to **Skok Wiary** - przez 6 dni, co wyraźnie widać w zarobkach - mimo sporej popularności, jej zysk był o wiele niższy niż liderów. Atrakcje, które psuły się rzadko (0-1 dzień), zarobiły dla parku najwięcej.
+Atrakcje, które miały najwięcej awarii to **Skok Wiary** oraz **Smocza Kolejka**, co wyraźnie widać w zarobkach - mimo sporej popularności, ich zysk był o wiele niższy niż liderów.
+
+
+# Wynik finansowy parku
+
+```{r finanse}
+przychody <- finanse$Wartość[1]
+koszty <- finanse$Wartość[2]
+zysk <- finanse$Wartość[3]
+
+marza <- round(zysk/przychody*100, 1)
+
+knitr::kable(
+  finanse,
+  col.names=c("Kategoria","Kwota [PLN]"),
+  caption="Wynik finansowy parku"
+)
+```
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{wyniki_analiza/finanse.png}
+\caption{Wynik finansowy parku}
+\label{fig:wynik_finansowy}
+\end{figure}
+
+Na wykresie \ref{fig:wynik_finansowy} przedstawiono ogólne zestawienie finansowe działalności parku.
+
+Przychody całkowite osiągnęły poziom **`r format(przychody, big.mark=" ", scientific=FALSE)` zł**, podczas gdy koszty wyniosły **`r format(koszty, big.mark=" ", scientific=FALSE)` zł**. Przełożyło się to na wypracowanie zysku netto w wysokości **`r format(zysk, big.mark=" ", scientific=FALSE)` zł**. Uzyskana marża netto na poziomie **`r marza`%** wskazuje na dodatni wynik finansowy analizowanego okresu.
+
+# Trend finansowy
+
+```{r trend_finanse}
+knitr::kable(trend_finansowy,col.names=c("Miesiąc","Przychody","Koszty","Zysk"),
+             caption="Trend finansowy parku")
+```
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{wyniki_analiza/trend_finansowy.png}
+\caption{Trend przychodów, kosztów i zysku w czasie}
+\label{fig:trend_finansowy}
+\end{figure}
+
+
+Na wykresie \ref{fig:trend_finansowy} przedstawiono zmiany przychodów, kosztów oraz wyniku finansowego w ujęciu miesięcznym. W analizowanym okresie koszty rosły szybciej niż przychody, co przełożyło się na stopniowe obniżanie miesięcznego zysku. W końcowej części analizowanego okresu pojawiły się miesiące, w których koszty przewyższały przychody. Wskazuje to na potrzebę monitorowania kosztów działalności oraz ograniczenia wydatków związanych z utrzymaniem atrakcji.
 
 # Bezpieczeństwo atrakcji
 
 ```{r bezpieczenstwo}
 knitr::kable(bezpieczenstwo, col.names=c("Nazwa atrakcji", "Liczba użyć", "Liczba wypadków", "Wskaźnik wypadkowości (%)", "Zalecenia"), caption="Bezpieczeństwo atrakcji")
 ```
-Najwięcej wypadków zachodzi na atrakcji **`r bezpieczenstwo$Nazwa_atrakcji[1]`**, której wskaźnik wypadkowości wynosi **`r bezpieczenstwo$Wskaznik_Wypadkowosci[1]`%**. Na terenie całego parku aż około **`r round((mean(bezpieczenstwo$Wskaznik_Wypadkowosci)),2)`%** gości ulega wypadkom, co oznacza, że każda atrakcja wymaga zdecydowanych popraw. 
+Najwięcej wypadków zachodzi na atrakcji **`r bezpieczenstwo$Nazwa_atrakcji[1]`**, której wskaźnik wypadkowości wynosi **`r bezpieczenstwo$Wskaznik_Wypadkowosci[1]`%**. Na terenie całego parku średni wskaźnik wypadkowości wyniósł około **`r round((mean(bezpieczenstwo$Wskaznik_Wypadkowosci)),2)`%**. Analiza wykazała podwyższony poziom wypadkowości dla wszystkich atrakcji znajdujących się w parku. Oznacza to konieczność przeprowadzenia dodatkowych kontroli technicznych oraz identyfikacji najczęstszych przyczyn zdarzeń. Szczególną uwagę należy poświęcić atrakcjom o najwyższym wskaźniku wypadkowości.
 
 # Bilety
 
@@ -54,7 +100,7 @@ knitr::kable(bilety, col.names=c("Rodzaj biletu", "Sprzedano", "Suma przychodów
 Największy przychód generuje bilet **`r bilety$Rodzaj_biletu[1]`** - 
 `r format(bilety$Suma_Przychod[1], scientific=FALSE)` zł, najmniejszy zaś bilet **`r bilety$Rodzaj_biletu[4]`** - `r format(bilety$Suma_Przychod[4], scientific=FALSE)` zł.
 
-# Popularność atrakcji
+# Liczba klientów
 
 \begin{figure}[H]
 \centering
@@ -63,7 +109,7 @@ Największy przychód generuje bilet **`r bilety$Rodzaj_biletu[1]`** -
 \label{fig:popularnosc}
 \end{figure}
 
-Na rysunku \ref{fig:popularnosc} widzimy, że firma jest w fazie **bardzo silnego wzrostu**. Zaczynaliśmy od mniejszej liczby gości, a w ostatnim miesiącu nastąpił potężny skok (wzrost o ponad 1000% względem początku działalności). 
+Na rysunku \ref{fig:popularnosc} widoczna jest względnie stabilna liczba odwiedzających z niewielkimi wahaniami pomiędzy miesiącami oraz delikatnym trendem wzrostowym.
 
 # Demografia
 
@@ -71,7 +117,7 @@ Na rysunku \ref{fig:popularnosc} widzimy, że firma jest w fazie **bardzo silneg
 knitr::kable(demografia, col.names=c("Średni wiek gości", "Najmłodszy", "Najstarszy", "Łączna liczba gości"), caption="Demografia gości")
 ```
 
-Średni wiek gości wynosi **`r demografia$Sredni_Wiek`**. Rozstrzał wieku jest jednak ogromny. Najmłodsza osoba w parku miała `r demografia$Najmlodszy` lata, a najstarsza `r demografia$Najstarszy`. Łącznie od 2022 roku park odwiedziło `r demografia$Liczba_Gosci` gości.
+Średni wiek gości wynosi **`r demografia$Sredni_Wiek`**. Rozstrzał wieku jest jednak ogromny. Najmłodsza osoba w parku miała `r demografia$Najmlodszy` lata, a najstarsza `r demografia$Najstarszy`. Łącznie od 2022 roku park odwiedziło `r demografia$Liczba_Gosci` gości. Oznacza to, że park odwiedzają zarówno rodziny z dziećmi, jak i osoby dorosłe oraz seniorzy.
 
 # Lojalność
 
@@ -82,7 +128,7 @@ procent <- (sum(lojalnosc$Ile_Osob)/demografia$Liczba_Gosci)*100
 
 ```
 
-`r lojalnosc$Ile_Osob[1]` gości odwiedziło park dwa razy, a `r lojalnosc$Ile_Osob[3]` gości więcej niż 3 razy. **`r round(procent,2)`%** gości powróciło chociaż raz do parku.
+**`r round(procent,2)`%** gości powróciło chociaż raz do parku, co świadczy o utrzymywaniu części stałych klientów.
 
 # Kraje
 
@@ -94,4 +140,4 @@ Najwięcej gości pochodziło z kraju **`r kraje$Kraj[1]`**. Osoby z tego kraju 
 
 # Podsumowanie
 
-Park „AiBtcQuantLandia” odnotowuje wyraźny wzrost liczby odwiedzających i jest w znacznej części rentowny. Przyciąga osoby z różnych grup wiekowych, co oznacza, że oferta parku jest atrakcyjna i uniwersalna - każdy znajdzie coś dla siebie. Ponadto część gości powraca do parku wielokrotnie. Wskaźniki wypadkowości jednak wskazują na konieczność poprawy bezpieczeństwa atrakcji. Dalszy rozwój powinien uwzględniać między innymi inwestycje w bezpieczeństwo i utrzymanie najpopularniejszych atrakcji.
+Park AiBtcQuantLandia w całym analizowanym okresie osiągnął dodatni wynik finansowy, jednak analiza miesięczna wskazuje na pogarszającą się relację przychodów do kosztów. Park przyciąga gości z różnych grup wiekowych oraz z wielu krajów, co oznacza, że jego oferta jest atrakcyjna i uniwersalna - każdy znajdzie coś dla siebie. Ponadto część gości powraca do parku wielokrotnie. Wskaźniki wypadkowości jednak wskazują na konieczność poprawy bezpieczeństwa atrakcji. Dalszy rozwój powinien uwzględniać między innymi inwestycje w bezpieczeństwo, ograniczenie awarii i optymalizację kosztów utrzymania atrakcji.

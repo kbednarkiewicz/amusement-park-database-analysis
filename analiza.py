@@ -7,7 +7,7 @@ config = {
     'host': 'localhost',
     'user': 'root',
     'password': '', 
-    'port': 3307,
+    'port': 3306,
     'database': 'park_rozrywki',
     'use_pure': False #lub True w przypadku Segmentation fault
 }
@@ -193,6 +193,125 @@ def demografia_wiekowa():
     df.to_csv("wyniki_analiza/demografia.csv", index=False)
     return df
 
+def wynik_finansowy_parku():
+    sql = """
+    SELECT 
+        Typ_transakcji,
+        SUM(Kwota) AS Suma
+    FROM transakcje
+    GROUP BY Typ_transakcji;
+    """
+
+    df = pd.read_sql(sql, db)
+    przychody = df.loc[df['Typ_transakcji'] == 'przychod', 'Suma'].sum()
+    koszty = df.loc[df['Typ_transakcji'] == 'wydatek', 'Suma'].sum()
+    zysk = przychody - koszty
+    marza = (zysk / przychody) * 100 if przychody > 0 else 0
+    wynik = pd.DataFrame({
+        "Kategoria": [
+            "Przychody całkowite",
+            "Koszty całkowite",
+            "Zysk netto",
+            "Marża (%)"
+        ],
+        "Wartość": [
+            round(przychody,2),
+            round(koszty,2),
+            round(zysk,2),
+            round(marza,2)
+        ]
+    })
+
+    print("\n--- WYNIK FINANSOWY PARKU ---")
+    print(wynik.to_string(index=False))
+
+    wynik.to_csv("wyniki_analiza/wynik_finansowy.csv", index=False)
+
+    return wynik
+
+def wykres_finanse():
+    df = pd.read_csv("wyniki_analiza/wynik_finansowy.csv")
+    df = df[df['Kategoria'] != "Marża (%)"]
+    plt.figure(figsize=(8,5))
+    sns.barplot(
+        data=df,
+        x="Kategoria",
+        y="Wartość"
+    )
+    plt.title("Wynik finansowy parku")
+    plt.ylabel("Kwota [PLN]")
+    plt.xticks(rotation=30)
+    plt.tight_layout()
+    plt.savefig("wyniki_analiza/finanse.png")
+    plt.close()
+
+def trend_finansowy():
+    sql = """
+    SELECT
+        DATE_FORMAT(Data_Transakcji, '%Y-%m') AS Miesiac,
+        Typ_transakcji,
+        SUM(Kwota) AS Kwota
+    FROM transakcje
+    GROUP BY Miesiac, Typ_transakcji
+    ORDER BY Miesiac;
+    """
+
+    df = pd.read_sql(sql, db)
+    tabela = df.pivot_table(
+        index="Miesiac",
+        columns="Typ_transakcji",
+        values="Kwota",
+        aggfunc="sum",
+        fill_value=0
+    )
+
+    if "przychod" not in tabela.columns:
+        tabela["przychod"] = 0
+
+    if "wydatek" not in tabela.columns:
+        tabela["wydatek"] = 0
+
+    tabela["Zysk"] = tabela["przychod"] - tabela["wydatek"]
+    tabela = tabela.reset_index()
+    tabela.rename(columns={
+        "przychod": "Przychody",
+        "wydatek": "Koszty"
+    }, inplace=True)
+
+    print("\n--- TREND FINANSOWY ---")
+    print(tabela.to_string(index=False))
+
+    tabela.to_csv("wyniki_analiza/trend_finansowy.csv",index=False)
+    plt.figure(figsize=(14,7))
+    plt.plot(
+        tabela["Miesiac"],
+        tabela["Przychody"],
+        marker="o",
+        label="Przychody"
+    )
+    plt.plot(
+        tabela["Miesiac"],
+        tabela["Koszty"],
+        marker="o",
+        label="Koszty"
+    )
+    plt.plot(
+        tabela["Miesiac"],
+        tabela["Zysk"],
+        marker="o",
+        label="Zysk")
+    plt.title("Trend przychodów, kosztów i zysku w czasie")
+    plt.xlabel("Miesiąc")
+    plt.ylabel("Kwota [PLN]")
+    plt.xticks(rotation=45)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("wyniki_analiza/trend_finansowy.png")
+    plt.close()
+
+    return tabela
+
 if __name__ == "__main__":
     analiza_rentownosci()
     raport_bezpieczenstwa()
@@ -201,6 +320,7 @@ if __name__ == "__main__":
     statystyki_biletow()
     analiza_lojalnosci()
     demografia_wiekowa()
-    
-    
+    wynik_finansowy_parku() 
+    wykres_finanse()
+    trend_finansowy()
     db.close()

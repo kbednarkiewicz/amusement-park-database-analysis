@@ -11,8 +11,8 @@ con = mysql.connector.connect(
     host="localhost",
     user="root",
     password="",
-    port=3307,
-    database="Park_Rozrywki",
+    port=3306,
+    database="park_rozrywki",
     use_pure=False #lub True w przypadku Segmentation fault
 )
 
@@ -33,16 +33,10 @@ nazwiska_m_pop = nazwiska_m.nlargest(150, "Liczba")["Nazwisko aktualne"].tolist(
 data_projektu = datetime(2026, 1, 18)
 dzisiaj = data_projektu.date()
 
-
-def generowanie_dat(pocz, kon):
-    data_pocz=datetime(pocz, 1, 1)
-    data_kon=datetime(kon, 12, 31)
-    roznica=data_kon-data_pocz
-    dni_pomiedzy=roznica.days
-    losowe_dni=random.randint(0, dni_pomiedzy)
-    return data_pocz + timedelta(losowe_dni)
-
-
+def generowanie_dat(data_start, data_koniec):
+    roznica = data_koniec - data_start
+    losowe_dni = random.randint(0, roznica.days)
+    return data_start + timedelta(days=losowe_dni)
 
 def generowanie_pracownikow(liczba):
     mycursor.execute("SELECT COUNT(*) FROM adres")
@@ -50,7 +44,7 @@ def generowanie_pracownikow(liczba):
 
     lista_dat_zatr=[]
     for i in range(liczba):
-        lista_dat_zatr.append(generowanie_dat(2022,2025))
+        lista_dat_zatr.append(generowanie_dat(datetime(2022,1,1), datetime(2025,12,31)))
 
     lista_dat_zatr.sort()
         
@@ -61,8 +55,7 @@ def generowanie_pracownikow(liczba):
             imie, nazwisko = random.choice(imiona_z_pop).capitalize(), random.choice(nazwiska_z_pop).capitalize()
         else:
             imie, nazwisko = random.choice(imiona_m_pop).capitalize(), random.choice(nazwiska_m_pop).capitalize()
-
-        urodziny=generowanie_dat(1961,2008)
+        urodziny=generowanie_dat(datetime(1961,1,1), datetime(2008,12,31)).date()
         zatrudnienie=lista_dat_zatr[i]
         pensja=round(random.uniform(4806,12000),2)
         id_adresu=random.randint(1, liczba_adresow) 
@@ -114,14 +107,19 @@ def generowanie_przegladow(liczba):
 
     lista_dat=[]
     for i in range(liczba):
-        lista_dat.append(generowanie_dat(2023,2025))
+        lista_dat.append(generowanie_dat(datetime(2023,1,1), datetime(2025,12,31)))
 
     lista_dat.sort()
 
     for i in range(liczba):
         id_atrakcji = random.choice(wszystkie_id)
         data_przeg = lista_dat[i]
-        wynik = random.choice(["POZYTYWNY", "POZYTYWNY", "NEGATYWNY"])
+        wynik = random.choice([
+    "POZYTYWNY",
+    "POZYTYWNY",
+    "POZYTYWNY",
+    "POZYTYWNY",
+    "NEGATYWNY"])
         mycursor.execute("INSERT INTO Przeglady_atrakcji (Data_przegladu, ID_atrakcji, Wynik_przegladu) VALUES (%s, %s, %s)", (data_przeg, id_atrakcji, wynik))
         
         if wynik == "NEGATYWNY":
@@ -155,7 +153,7 @@ def generowanie_kosztow(liczba):
 
         if wynik == "NEGATYWNY":
             data_serwisu = data_przeg + timedelta(days=1)
-            kwota = round(random.uniform(1500, 3000), 2)
+            kwota = round(random.uniform(800,2000),2)
             opis = f"Naprawa awaryjna po przeglądzie"
             wszystkie_wydatki.append((opis, kwota, data_serwisu, id_atr, None))
         
@@ -175,7 +173,7 @@ def generowanie_kosztow(liczba):
 
     for i in range(liczba):
         kategoria = random.choice(["mala", "mala", "mala", "mala", "srednia", "srednia", "duza"])
-        data = generowanie_dat(2022, 2025)
+        data = generowanie_dat(datetime(2022,1,1), datetime(2025,12,31))
         if hasattr(data, 'date'): data = data.date()
 
         if kategoria == "mala":
@@ -204,8 +202,6 @@ generowanie_przegladow(100)
 generowanie_kosztow(150)
 
 
-
-random.seed(222)
 poczatek_kwarantanny = datetime(2023, 6, 1).date()
 koniec_kwarantanny = datetime(2023, 12, 31).date()
 
@@ -222,7 +218,9 @@ def generowanie_gosci(liczba):
             imie = random.choice(imiona_m_pop).capitalize()
             nazwisko = random.choice(nazwiska_m_pop).capitalize()
         aktualny_rok = data_projektu.year
-        data_urodzenia = generowanie_dat(aktualny_rok - 70, aktualny_rok - 3).date()
+        data_urodzenia = generowanie_dat(
+    datetime(aktualny_rok - 70, 1, 1),
+    datetime(aktualny_rok - 3, 12, 31)).date()
         id_adresu = random.choice(wszystkie_id)
         mycursor.execute(sql, (imie, nazwisko, data_urodzenia, id_adresu))
     con.commit()
@@ -244,7 +242,10 @@ def generowanie_wizyt(liczba):
         id_goscia, data_urodzenia = random.choice(goscie)
         wiek_min = 3
         data_min = data_urodzenia + relativedelta(years=wiek_min)
-        data_przyjazdu = generowanie_dat(max(2022, data_min.year), dzisiaj.year).date()
+        data_przyjazdu = generowanie_dat(
+    max(datetime(2022,1,1), datetime(data_min.year,1,1)),
+    data_projektu
+).date()
         if data_przyjazdu > dzisiaj:
             data_przyjazdu = dzisiaj
         dlugosc = random.randint(1, 7)
