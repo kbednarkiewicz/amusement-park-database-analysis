@@ -60,7 +60,7 @@ generator_danych_2.py        - generowanie pracowników, gości i działalności
 analiza.py                   - analiza danych oraz generowanie wykresów
 Raport.Rmd                   - kod raportu
 Raport.pdf                   - wygenerowany raport
-ERD/schemat_bazy.png         - schemat bazy danych
+schemat_bazy.png             - schemat bazy danych
 wyniki_analiza/              - pliki CSV i wykresy wygenerowane przez analizę
 ```
 
@@ -86,7 +86,7 @@ Kolejność uruchamiania:
 
 ## Schemat bazy danych
 
-![Schemat bazy danych](ERD/schemat_bazy.png)
+![Schemat bazy danych](schemat_bazy.png)
 
 Baza została zaprojektowana jako relacyjna i znormalizowana do postaci EKNF.
 
