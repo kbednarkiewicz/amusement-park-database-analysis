@@ -1,6 +1,6 @@
 ---
 title: "Raport z działalności parku rozrywki"
-date: "`r Sys.Date()`"
+date: "18-01-2026"
 header-includes:
    - \usepackage{float}
 lang: pl
